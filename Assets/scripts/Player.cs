@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
     
     public float health = 100f; /* VIDA DO PLAYER */
     
-    public float stamina = 100f;    /* STAMINA DO PLAYER */
+    public Stamina stamina;    /* STAMINA DO PLAYER */
 
     bool isWalking = false;     /* GUARDA SE O PLAYER ESTÁ ANDANDO */
 
@@ -33,6 +33,9 @@ public class Player : MonoBehaviour
         moveAudioSource = GetComponent<AudioSource>();
         moveAudioSource.loop = true;
         animator = GetComponent<Animator>();
+
+        /* INICIALIZANDO STAMINA DO PERSONAGEM */
+        this.stamina =  GameObject.Find("Stamina").GetComponent<Stamina>();
     }
 
     // Update is called once per frame
@@ -43,11 +46,16 @@ public class Player : MonoBehaviour
 
     public void walk()  /* FAZ O JOGADOR ANDAR PELO MAPA AO PRESSIONAR OS BOTÕES */
     {
-        if(Input.GetButton("Run")){ /* CONDICIONAL PARA FAZER O JOGADOR CORRER */
+        if(Input.GetButton("Run") && !(stamina.exausted)){ /* CONDICIONAL PARA FAZER O JOGADOR CORRER */
+            Debug.Log("entrou " + stamina.exausted);
             run();
         }
         else{   /* CONDICIONAL PARA FAZER O JOGADOR ANDAR EM VELOCIDADE NORMAL */
             walkNormal();
+        }
+
+        if(!isRunning){
+            stamina.increase(0.2f);
         }
         
     }
@@ -146,6 +154,8 @@ public class Player : MonoBehaviour
             transform.position = newPosition;
             animator.SetBool("isWalking", true);
         }
+
+        stamina.decrease(0.4f); /* DIMINUI A STAMINA AO CORRER */
 
         if (!Input.GetButton("Vertical") && !Input.GetButton("Horizontal")) /* RODA QUANDO O PLAYER PARAR DE ANDAR */
         {
