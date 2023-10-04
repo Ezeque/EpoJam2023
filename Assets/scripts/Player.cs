@@ -6,18 +6,18 @@ using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
-    
+
     public float walkingSpeed = 5f;    /* VELOCIDADE DE MOVIMENTO NORMAL DO PLAYER */
 
     public float runningSpeed = 6f; /* VELOCIDADE DE MOVIMENTO DE CORRIDA DO PLAYER */
-    
+
     public float health = 100f; /* VIDA DO PLAYER */
-    
+
     public Stamina stamina;    /* STAMINA DO PLAYER */
 
     bool isWalking = false;     /* GUARDA SE O PLAYER ESTÁ ANDANDO */
 
-    bool isRunning = false;
+    bool isRunning = false; /* GUARDA SE O PLAYER ESTÁ CORRENDO */
 
     Animator animator;      /* ANIMATOR PARA CONTROLAR AS ANIMAÇÕES DO PLAYER */
 
@@ -27,6 +27,12 @@ public class Player : MonoBehaviour
 
     private AudioSource moveAudioSource;    /* CONTROLADOR DO ÁUDIO DE MOVIMENTO */
 
+    private PlayerSight sight; /* GUARDA O CAMPO DE VISÃO DO JOGADOR */
+
+    Vector3 sightScale;
+    string direction;
+    bool changingDirection;
+
     void Start()
     {
         /* CONFIGURANDO CONTROLADORES DE ÁUDIO E ANIMAÇÃO */
@@ -35,29 +41,38 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
 
         /* INICIALIZANDO STAMINA DO PERSONAGEM */
-        this.stamina =  GameObject.Find("Stamina").GetComponent<Stamina>();
+        this.stamina = GameObject.Find("Stamina").GetComponent<Stamina>();
+
+        sight = GameObject.Find("Sight").GetComponent<PlayerSight>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        directionResolver();
         walk(); /* RESOLVENDO A LÓGICA DA MOVIMENTAÇÃO */
     }
 
     public void walk()  /* FAZ O JOGADOR ANDAR PELO MAPA AO PRESSIONAR OS BOTÕES */
     {
-        if(Input.GetButton("Run") && !(stamina.exausted)){ /* CONDICIONAL PARA FAZER O JOGADOR CORRER */
-            Debug.Log("entrou " + stamina.exausted);
+        if (Input.GetButton("Run") && !(stamina.exausted))
+        { /* CONDICIONAL PARA FAZER O JOGADOR CORRER */
             run();
         }
-        else{   /* CONDICIONAL PARA FAZER O JOGADOR ANDAR EM VELOCIDADE NORMAL */
+        else
+        {   /* CONDICIONAL PARA FAZER O JOGADOR ANDAR EM VELOCIDADE NORMAL */
             walkNormal();
-        }
 
-        if(!isRunning){
+            if (sight)
+            {
+                sight.resolveRotation();
+            }
+        }
+        if (!isRunning)
+        {
             stamina.increase(0.2f);
         }
-        
+
     }
 
     public void walkNormal() /* MOVIMENTA O PERSONAGEM NA VELOCIDADE PADRÃO */
@@ -104,7 +119,7 @@ public class Player : MonoBehaviour
         }
 
         if (!Input.GetButton("Vertical") && !Input.GetButton("Horizontal")) /* RODA QUANDO O PLAYER PARA DE SE MOVIMENTAR */
-        {   
+        {
             moveAudioSource.Stop();
             this.isWalking = false;
             animator.SetBool("isWalking", false);
@@ -124,7 +139,7 @@ public class Player : MonoBehaviour
                 moveAudioSource.Play();
             }
             this.isRunning = true;
-            Vector3 newPosition = new Vector3(transform.position.x + Input.GetAxis("Horizontal") * runningSpeed* Time.deltaTime, transform.position.y, transform.position.z);
+            Vector3 newPosition = new Vector3(transform.position.x + Input.GetAxis("Horizontal") * runningSpeed * Time.deltaTime, transform.position.y, transform.position.z);
             transform.position = newPosition;
 
             /* VIRANDO O PERSONAGEM DE LADO  */
@@ -163,5 +178,53 @@ public class Player : MonoBehaviour
             this.isRunning = false;
             animator.SetBool("isWalking", false);
         }
+    }
+
+    void directionResolver()
+    {
+        /* VERIFICANDO SE PLAYER ESTÁ MUDANDO DE DIREÇÃO */
+        if (direction == "right" && Input.GetAxis("Horizontal") < 0)
+        {
+            this.changingDirection = true;
+        }
+        else if (direction == "left" && Input.GetAxis("Horizontal") > 0)
+        {
+            this.changingDirection = true;
+        }
+        else if (direction == "down" && Input.GetAxis("Vertical") > 0)
+        {
+            this.changingDirection = true;
+        }
+        else if (direction == "up" && Input.GetAxis("Vertical") < 0)
+        {
+            this.changingDirection = true;
+        }
+        else
+        {
+            this.changingDirection = false;
+        }
+        if (this.changingDirection == true)
+        {
+            Debug.Log("Mudando de Direção");
+        }
+
+        /* ATUALIZANDO ESTADO DA DIREÇÃO DO PLAYER */
+        if (Input.GetAxis("Horizontal") > 0)
+        {
+            this.direction = "right";
+        }
+        if (Input.GetAxis("Horizontal") < 0)
+        {
+            this.direction = "left";
+        }
+        if (Input.GetAxis("Vertical") > 0)
+        {
+            this.direction = "up";
+        }
+        if (Input.GetAxis("Vertical") < 0)
+        {
+            this.direction = "down";
+        }
+
     }
 }

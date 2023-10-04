@@ -18,7 +18,7 @@ public class Camera : MonoBehaviour
     {
         if (playerTransform != null)
         {
-            Vector3 targetPosition = new Vector3(playerTransform.position.x, playerTransform.position.y, playerTransform.position.z-9);
+            Vector3 targetPosition = new Vector3(playerTransform.position.x + (5 * Input.GetAxis("Horizontal")), playerTransform.position.y + (4 * Input.GetAxis("Vertical")), playerTransform.position.z-9);
             transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
         }
     }
